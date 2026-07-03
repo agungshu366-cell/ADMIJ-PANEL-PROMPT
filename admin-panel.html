@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>METAGZ ADMIN PANEL</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;outline:none;}
+:root{
+  --red:#ff1744;--gold:#ffd700;--green:#00e676;--blue:#40c4ff;--purple:#9c27b0;--orange:#ff9800;
+  --neon-red:0 0 8px #ff1744,0 0 20px #ff174488;
+  --neon-gold:0 0 8px #ffd700,0 0 20px #ffd70066;
+  --neon-green:0 0 10px #00e676,0 0 24px #00e67666;
+  --bg:#03030a;--glass:rgba(255,255,255,0.07);--glass2:rgba(255,255,255,0.05);
+  --border:rgba(255,23,68,0.35);--text:#e0e0e0;--text2:#888;
+}
+html,body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow-x:hidden;min-height:100vh;}
+body::-webkit-scrollbar{width:4px;}body::-webkit-scrollbar-track{background:#0a0a0a;}body::-webkit-scrollbar-thumb{background:var(--red);border-radius:2px;}
+#bgVideo{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;opacity:0.12;pointer-events:none;}
+#bgOverlay{position:fixed;inset:0;background:linear-gradient(135deg,rgba(3,3,10,0.88),rgba(15,5,25,0.85));z-index:-1;pointer-events:none;}
+.grid-lines{position:fixed;inset:0;background-image:linear-gradient(rgba(255,23,68,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,23,68,0.03) 1px,transparent 1px);background-size:50px 50px;z-index:-1;pointer-events:none;}
+
+/* LANDING */
+#adminLanding{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;position:relative;}
+.admin-logo{font-family:'Orbitron',sans-serif;font-size:clamp(1.5rem,5vw,2.8rem);font-weight:900;background:linear-gradient(135deg,#ff1744,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 20px rgba(255,23,68,.5));letter-spacing:3px;margin-bottom:6px;text-align:center;}
+.admin-sub{font-family:'Orbitron',sans-serif;font-size:.75rem;color:var(--red);letter-spacing:8px;margin-bottom:40px;text-align:center;}
+.login-card{background:rgba(255,255,255,0.06);backdrop-filter:blur(24px);border:1px solid rgba(255,23,68,.35);border-radius:24px;padding:36px 28px;max-width:380px;width:100%;}
+.login-card h2{font-family:'Orbitron',sans-serif;font-size:.9rem;color:var(--red);margin-bottom:24px;text-align:center;letter-spacing:2px;}
+.form-group-login{margin-bottom:16px;}
+.form-group-login label{display:block;font-size:.8rem;color:var(--text2);margin-bottom:6px;letter-spacing:1px;}
+.pw-wrap{position:relative;margin-bottom:14px;}
+.pw-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,23,68,.35);border-radius:12px;padding:12px 44px 12px 14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:1rem;letter-spacing:1px;}
+.pw-input:focus{border-color:var(--red);box-shadow:0 0 10px rgba(255,23,68,.25);}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);cursor:pointer;font-size:1rem;}
+.btn-login-admin{width:100%;padding:13px;background:linear-gradient(135deg,var(--red),#c62828);color:#fff;border:none;border-radius:12px;font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:2px;cursor:pointer;box-shadow:var(--neon-red);transition:all .3s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-login-admin:hover{transform:scale(1.02);}
+.login-err{text-align:center;color:var(--red);font-size:.82rem;margin-top:10px;display:none;animation:shake .3s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+
+/* APP */
+#adminApp{display:none;min-height:100vh;padding-bottom:72px;}
+.admin-navbar{position:fixed;bottom:0;left:0;right:0;background:rgba(3,3,10,0.85);backdrop-filter:blur(20px);border-top:1px solid rgba(255,23,68,.25);display:flex;justify-content:space-around;padding:8px 0;z-index:100;}
+.admin-nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text2);cursor:pointer;padding:4px 10px;font-family:'Rajdhani',sans-serif;font-size:.62rem;letter-spacing:1px;text-transform:uppercase;transition:.3s;}
+.admin-nav-btn i{font-size:1.15rem;}
+.admin-nav-btn.active{color:var(--red);}
+.admin-nav-btn.active i{filter:drop-shadow(0 0 6px var(--red));}
+.admin-page{display:none;padding:16px;min-height:calc(100vh - 72px);}
+.admin-page.active{display:block;}
+.admin-header{font-family:'Orbitron',sans-serif;font-size:.9rem;color:var(--red);text-shadow:var(--neon-red);margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+
+/* STAT CARDS */
+.stat-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;}
+@media(min-width:600px){.stat-row{grid-template-columns:repeat(4,1fr);}}
+.stat-tile{background:rgba(255,255,255,0.07);backdrop-filter:blur(14px);border:1px solid rgba(255,23,68,.25);border-radius:16px;padding:18px 14px;text-align:center;transition:.3s;}
+.stat-tile:hover{box-shadow:var(--neon-red);}
+.stat-tile .icon{font-size:1.6rem;margin-bottom:8px;display:block;}
+.stat-tile .val{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;color:var(--red);text-shadow:var(--neon-red);display:block;margin-bottom:4px;}
+.stat-tile .lbl{font-size:.72rem;color:var(--text2);letter-spacing:1px;text-transform:uppercase;}
+
+/* CHARTS */
+.chart-wrap{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);border:1px solid rgba(255,23,68,.2);border-radius:18px;padding:18px;margin-bottom:16px;}
+.chart-title{font-family:'Orbitron',sans-serif;font-size:.76rem;color:var(--text2);letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:100px;padding-bottom:20px;}
+.bar{flex:1;background:linear-gradient(to top,var(--red),rgba(255,23,68,.3));border-radius:4px 4px 0 0;transition:height .5s ease;min-width:8px;position:relative;}
+.bar-lbl{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:.55rem;color:var(--text2);white-space:nowrap;}
+.log-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;}
+.log-list::-webkit-scrollbar{width:3px;}
+.log-list::-webkit-scrollbar-thumb{background:var(--red);}
+.log-item{background:rgba(255,255,255,0.04);border:1px solid rgba(255,23,68,.12);border-radius:10px;padding:9px 12px;font-size:.8rem;display:flex;align-items:center;gap:10px;}
+.log-icon{width:20px;text-align:center;flex-shrink:0;}
+.log-time{color:var(--text2);font-size:.7rem;margin-left:auto;white-space:nowrap;}
+
+/* CONTROL CARDS */
+.ctrl-stack{display:flex;flex-direction:column;gap:14px;}
+.ctrl-card{background:rgba(255,255,255,0.06);backdrop-filter:blur(14px);border:1px solid rgba(255,23,68,.22);border-radius:18px;padding:18px 16px;}
+.ctrl-card-title{font-family:'Orbitron',sans-serif;font-size:.76rem;color:var(--gold);letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ctrl-card-title i{color:var(--red);}
+.form-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.form-row input,.form-row select{flex:1;min-width:120px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,23,68,.3);border-radius:10px;padding:9px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.9rem;}
+.form-row input:focus,.form-row select:focus{border-color:var(--red);}
+.form-row select option{background:#0a0a14;}
+textarea.wide{width:100%;min-height:80px;resize:vertical;background:rgba(255,255,255,0.08);border:1px solid rgba(255,23,68,.3);border-radius:10px;padding:9px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.9rem;margin-bottom:8px;}
+textarea.wide:focus{border-color:var(--red);}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+.ctrl-btn{padding:9px 16px;border-radius:10px;border:none;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:.66rem;font-weight:700;letter-spacing:1px;transition:.2s;display:flex;align-items:center;gap:6px;}
+.ctrl-btn:hover{transform:scale(1.04);}
+.cb-red{background:linear-gradient(135deg,var(--red),#c62828);color:#fff;box-shadow:var(--neon-red);}
+.cb-gold{background:linear-gradient(135deg,var(--gold),#ff8f00);color:#000;}
+.cb-green{background:linear-gradient(135deg,var(--green),#00b248);color:#000;}
+.cb-blue{background:linear-gradient(135deg,var(--blue),#0091ea);color:#000;}
+.cb-purple{background:linear-gradient(135deg,var(--purple),#4a0072);color:#fff;}
+.cb-orange{background:linear-gradient(135deg,var(--orange),#e65100);color:#fff;}
+.cb-gray{background:rgba(255,255,255,0.1);border:1px solid rgba(255,23,68,.3);color:var(--text);}
+
+/* DATA TABLE */
+.tbl-wrap{background:rgba(255,255,255,0.04);border:1px solid rgba(255,23,68,.18);border-radius:14px;overflow:hidden;overflow-x:auto;}
+.data-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+.data-table th{background:rgba(255,23,68,.1);padding:9px 10px;text-align:left;font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:1px;color:var(--red);border-bottom:1px solid rgba(255,23,68,.18);}
+.data-table td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text2);vertical-align:middle;}
+.data-table tr:hover td{background:rgba(255,23,68,.04);}
+.tbl-action{padding:4px 10px;border-radius:6px;border:none;cursor:pointer;font-size:.7rem;font-family:'Rajdhani',sans-serif;font-weight:700;transition:.2s;}
+.tbl-action:hover{transform:scale(1.06);}
+
+/* USER ITEM */
+.user-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);}
+.user-item:last-child{border-bottom:none;}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,23,68,.1);border:1px solid rgba(255,23,68,.3);display:flex;align-items:center;justify-content:center;color:var(--red);font-size:.9rem;flex-shrink:0;}
+.user-info{flex:1;min-width:0;}
+.user-name-txt{font-weight:600;font-size:.86rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-meta{font-size:.7rem;color:var(--text2);}
+.user-actions{display:flex;gap:5px;flex-shrink:0;}
+
+/* TRX PAGE */
+.trx-filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.trx-filter-btn{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,23,68,.3);background:rgba(255,255,255,0.06);color:var(--text2);cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:.8rem;transition:.2s;}
+.trx-filter-btn.active{background:rgba(255,23,68,.18);border-color:var(--red);color:var(--red);}
+.trx-admin-card{background:rgba(255,255,255,0.06);backdrop-filter:blur(14px);border:1px solid rgba(255,23,68,.22);border-radius:16px;padding:16px;margin-bottom:12px;}
+.trx-admin-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px;}
+.trx-admin-title{font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:700;color:var(--text);flex:1;}
+.trx-status-badge{font-family:'Orbitron',sans-serif;font-size:.58rem;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.st-pending{background:rgba(255,152,0,.18);color:#ff9800;border:1px solid rgba(255,152,0,.4);}
+.st-success{background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.35);}
+.st-cancelled{background:rgba(255,23,68,.12);color:var(--red);border:1px solid rgba(255,23,68,.3);}
+.st-expired{background:rgba(100,100,100,.18);color:#666;border:1px solid rgba(100,100,100,.25);}
+.trx-row{font-size:.78rem;color:var(--text2);margin-bottom:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.trx-row strong{color:var(--text);}
+.proof-thumb{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,23,68,.3);cursor:pointer;display:block;margin-top:8px;}
+.pay-info-box{background:rgba(0,0,0,.25);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:10px;margin:8px 0;font-size:.78rem;}
+.pay-info-box .pi-title{font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--gold);margin-bottom:6px;}
+.pay-info-box .pi-row{color:var(--text2);margin-bottom:3px;display:flex;gap:6px;align-items:center;}
+.pay-info-box .pi-row strong{color:var(--text);}
+.pay-qr-img{width:120px;height:120px;object-fit:contain;border-radius:8px;border:1px solid rgba(156,39,176,.4);display:block;margin-top:6px;}
+.trx-admin-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.trx-search{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,23,68,.3);border-radius:10px;padding:9px 14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.9rem;margin-bottom:12px;}
+.trx-search:focus{border-color:var(--red);}
+.trx-empty{text-align:center;padding:50px 20px;color:var(--text2);}
+.trx-empty i{font-size:2.5rem;display:block;margin-bottom:10px;color:rgba(255,23,68,.3);}
+.trx-count-badge{background:rgba(255,23,68,.18);border:1px solid rgba(255,23,68,.35);border-radius:20px;padding:2px 10px;font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--red);margin-left:8px;}
+
+/* PROFIL ADMIN */
+.admin-profil{max-width:400px;margin:0 auto;text-align:center;padding:20px 16px;}
+.admin-av{width:80px;height:80px;border-radius:50%;background:rgba(255,23,68,.1);border:2px solid var(--red);display:inline-flex;align-items:center;justify-content:center;font-size:2rem;color:var(--red);margin-bottom:14px;box-shadow:var(--neon-red);}
+.admin-profil-menu{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+.admin-profil-btn{background:rgba(255,255,255,0.07);border:1px solid rgba(255,23,68,.3);border-radius:12px;padding:13px 16px;color:var(--text);cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:600;display:flex;align-items:center;gap:10px;transition:.2s;}
+.admin-profil-btn:hover{border-color:var(--red);background:rgba(255,23,68,.1);color:var(--red);}
+.admin-profil-btn i{color:var(--red);width:18px;}
+
+/* MODAL */
+.amodal{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);z-index:400;display:none;align-items:center;justify-content:center;padding:16px;}
+.amodal.open{display:flex;}
+.amodal-box{background:rgba(10,8,20,0.92);backdrop-filter:blur(24px);border:1px solid rgba(255,23,68,.4);border-radius:20px;max-width:420px;width:100%;padding:24px 20px;position:relative;animation:popIn .3s ease;max-height:90vh;overflow-y:auto;}
+.amodal-box::-webkit-scrollbar{width:3px;}
+.amodal-box::-webkit-scrollbar-thumb{background:var(--red);}
+@keyframes popIn{from{transform:scale(.88);opacity:0;}to{transform:scale(1);opacity:1;}}
+.amodal-title{font-family:'Orbitron',sans-serif;font-size:.9rem;color:var(--red);margin-bottom:10px;text-align:center;}
+.amodal-text{font-size:.84rem;color:var(--text2);text-align:center;margin-bottom:18px;line-height:1.6;}
+.amodal-close{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:1rem;}
+.amodal-btns{display:flex;gap:8px;}
+.amb{flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:700;transition:.2s;}
+.amb-r{background:linear-gradient(135deg,var(--red),#c62828);color:#fff;}
+.amb-g{background:linear-gradient(135deg,var(--green),#00b248);color:#000;}
+.amb-s{background:rgba(255,255,255,.08);border:1px solid rgba(255,23,68,.3);color:var(--text);}
+
+/* LOGIN MODAL */
+.g-btn{padding:12px 16px;border-radius:12px;border:1px solid rgba(255,23,68,.3);background:rgba(255,255,255,0.08);color:var(--text);cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:600;display:flex;align-items:center;gap:10px;width:100%;transition:.2s;margin-bottom:10px;}
+.g-btn:hover{border-color:var(--red);background:rgba(255,23,68,.1);}
+.divider{text-align:center;color:var(--text2);font-size:.76rem;margin:8px 0;position:relative;}
+.divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:rgba(255,23,68,.3);}
+.divider::before{left:0;}.divider::after{right:0;}
+.a-form-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,23,68,.3);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.9rem;margin-bottom:8px;}
+.a-form-input:focus{border-color:var(--red);}
+
+/* TOAST */
+.atoast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(10,8,20,.95);backdrop-filter:blur(16px);border:1px solid rgba(255,23,68,.4);color:#fff;padding:10px 22px;border-radius:30px;font-family:'Rajdhani',sans-serif;font-size:.86rem;font-weight:600;z-index:600;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;box-shadow:var(--neon-red);}
+.atoast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@keyframes spin{to{transform:rotate(360deg);}}
+.fa-spin{animation:spin .6s linear infinite;}
+</style>
+</head>
+<body>
+
+<video id="bgVideo" autoplay muted loop playsinline src="./bg.mp4"></video>
+<div id="bgOverlay"></div>
+<div class="grid-lines"></div>
+
+<!-- LANDING -->
+<div id="adminLanding">
+  <div class="admin-logo"><i class="fa fa-shield-halved"></i> METAGZ</div>
+  <div class="admin-sub">ADMIN PANEL</div>
+  <div class="login-card">
+    <h2><i class="fa fa-lock"></i> AKSES ADMIN</h2>
+    <div class="pw-wrap">
+      <input type="password" class="pw-input" id="adminPw" placeholder="Masukkan password..." onkeydown="if(event.key==='Enter')doAdminLogin()">
+      <button type="button" class="pw-toggle" onclick="togglePw()"><i class="fa fa-eye" id="eyeIcon"></i></button>
+    </div>
+    <button class="btn-login-admin" onclick="doAdminLogin()"><i class="fa fa-arrow-right-to-bracket"></i> MASUK</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminApp">
+
+  <!-- HOME / ANALYTICS -->
+  <div class="admin-page active" id="apage-home">
+    <div class="admin-header"><i class="fa fa-chart-line"></i> ANALYTICS & MONITORING</div>
+    <div class="stat-row">
+      <div class="stat-tile"><span class="icon"><i class="fa fa-eye" style="color:var(--blue);"></i></span><span class="val" id="totalVisits">—</span><span class="lbl">Kunjungan</span></div>
+      <div class="stat-tile"><span class="icon"><i class="fa fa-users" style="color:var(--green);"></i></span><span class="val" id="totalUsers">—</span><span class="lbl">Total Akun</span></div>
+      <div class="stat-tile"><span class="icon"><i class="fa fa-bolt" style="color:var(--gold);"></i></span><span class="val" id="totalPrompts">—</span><span class="lbl">Total Prompt</span></div>
+      <div class="stat-tile"><span class="icon"><i class="fa fa-receipt" style="color:var(--orange);"></i></span><span class="val" id="totalTrx">—</span><span class="lbl">Total TRX</span></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title"><i class="fa fa-chart-bar" style="color:var(--red);"></i> KUNJUNGAN 7 HARI (REAL-TIME)</div>
+      <div class="bar-chart" id="visitChart"></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title"><i class="fa fa-upload" style="color:var(--gold);"></i> UPLOAD PROMPT 7 HARI</div>
+      <div class="bar-chart" id="uploadChart"></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title"><i class="fa fa-list-check" style="color:var(--blue);"></i> AKTIVITAS TERBARU (REAL-TIME)</div>
+      <div class="log-list" id="activityLog"><div class="log-item"><i class="fa fa-spinner fa-spin log-icon" style="color:var(--red);"></i><span>Memuat data...</span></div></div>
+    </div>
+  </div>
+
+  <!-- CONTROL -->
+  <div class="admin-page" id="apage-control">
+    <div class="admin-header"><i class="fa fa-sliders"></i> CONTROL CENTER</div>
+    <div class="ctrl-stack">
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-bullhorn"></i> BANNER NEWS</div>
+        <textarea class="wide" id="bannerText" placeholder="Teks banner untuk semua user..."></textarea>
+        <div class="form-row"><input type="text" id="bannerImg" placeholder="URL gambar banner (opsional)"></div>
+        <div class="btn-row">
+          <button class="ctrl-btn cb-red" onclick="sendBanner()"><i class="fa fa-bullhorn"></i> KIRIM BANNER</button>
+          <button class="ctrl-btn cb-gray" onclick="deleteBanner()"><i class="fa fa-trash"></i> HAPUS BANNER</button>
+        </div>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-film"></i> BACKGROUND & MEDIA WEBSITE</div>
+        <div class="form-row"><input type="text" id="bgVideoUrl" placeholder="URL Video MP4 background app"><button type="button" class="ctrl-btn cb-gray" onclick="document.getElementById('bgVideoFile').click()"><i class="fa fa-upload"></i></button><input type="file" id="bgVideoFile" accept="video/mp4" style="display:none" onchange="uploadMediaFile(this,'bgVideoUrl')"></div>
+        <div class="form-row"><input type="text" id="bgAudioUrl" placeholder="URL Audio MP3 background app"><button type="button" class="ctrl-btn cb-gray" onclick="document.getElementById('bgAudioFile').click()"><i class="fa fa-upload"></i></button><input type="file" id="bgAudioFile" accept="audio/mpeg,audio/mp3" style="display:none" onchange="uploadMediaFile(this,'bgAudioUrl')"></div>
+        <div class="form-row"><input type="text" id="bgLandingImg" placeholder="URL Foto background landing page"><button type="button" class="ctrl-btn cb-gray" onclick="document.getElementById('bgLandingFile').click()"><i class="fa fa-upload"></i></button><input type="file" id="bgLandingFile" accept="image/*" style="display:none" onchange="uploadMediaFile(this,'bgLandingImg')"></div>
+        <div id="mediaUploadStatus" style="font-size:.72rem;color:var(--text2);margin-bottom:8px;"></div>
+        <button class="ctrl-btn cb-blue" onclick="saveBg()"><i class="fa fa-floppy-disk"></i> SIMPAN PENGATURAN</button>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-star"></i> VIP PROMPT</div>
+        <div class="form-row">
+          <input type="text" id="vipPromptId" placeholder="Prompt ID">
+          <input type="number" id="vipDays" placeholder="Durasi hari>500" min="1" max="500">
+        </div>
+        <div class="btn-row">
+          <button class="ctrl-btn cb-gold" onclick="setVIP()"><i class="fa fa-star"></i> BERI VIP</button>
+          <button class="ctrl-btn cb-gray" onclick="removeVIP()"><i class="fa fa-star-half-stroke"></i> HAPUS VIP</button>
+        </div>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-tag"></i> LABEL PROMPT</div>
+        <div class="form-row">
+          <input type="text" id="labelPromptId" placeholder="Prompt ID">
+          <select id="labelType">
+            <option value="">Pilih Label</option>
+            <option value="bestseller">Best Seller</option>
+            <option value="hot">HOT</option>
+            <option value="popular">Populer</option>
+            <option value="ter-josjis">Ter-Josjis</option>
+            <option value="good">GOOD</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button class="ctrl-btn cb-purple" onclick="setLabel()"><i class="fa fa-tag"></i> BERI LABEL</button>
+          <button class="ctrl-btn cb-gray" onclick="removeLabel()"><i class="fa fa-xmark"></i> HAPUS LABEL</button>
+        </div>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-palette"></i> TEMPLATE CARD KHUSUS</div>
+        <div class="form-row"><input type="text" id="tplPromptId" placeholder="Prompt ID"></div>
+        <div class="form-row"><input type="text" id="tplVideoUrl" placeholder="URL Video background card"></div>
+        <div class="form-row"><input type="text" id="tplPhotoUrl" placeholder="URL Foto background card"></div>
+        <div class="btn-row">
+          <button class="ctrl-btn cb-blue" onclick="setTemplate()"><i class="fa fa-palette"></i> SET TEMPLATE</button>
+          <button class="ctrl-btn cb-gray" onclick="removeTemplate()"><i class="fa fa-rotate-left"></i> RESET</button>
+        </div>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-coins"></i> TOKEN USER</div>
+        <div class="form-row">
+          <input type="text" id="tokenUserId" placeholder="UID atau MGZ-ID User">
+          <input type="number" id="tokenAmount" placeholder="Jumlah token" min="1">
+        </div>
+        <button class="ctrl-btn cb-gold" onclick="addToken()"><i class="fa fa-coins"></i> TAMBAH TOKEN</button>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-crown"></i> AKSES PREMIUM MANUAL</div>
+        <div class="form-row">
+          <input type="text" id="accUid" placeholder="UID User">
+          <input type="text" id="accPromptId" placeholder="Prompt ID">
+        </div>
+        <div class="btn-row">
+          <button class="ctrl-btn cb-green" onclick="grantAccess()"><i class="fa fa-unlock"></i> BERI AKSES</button>
+          <button class="ctrl-btn cb-gray" onclick="revokeAccess()"><i class="fa fa-lock"></i> CABUT AKSES</button>
+        </div>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-trash"></i> HAPUS PROMPT</div>
+        <div class="form-row"><input type="text" id="delPromptId" placeholder="Prompt ID"></div>
+        <button class="ctrl-btn cb-red" onclick="askDelPrompt()"><i class="fa fa-trash"></i> HAPUS PROMPT</button>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-user-slash"></i> BLOKIR / UNBLOKIR AKUN</div>
+        <div class="form-row"><input type="text" id="blockUid" placeholder="UID User"></div>
+        <div class="btn-row">
+          <button class="ctrl-btn cb-red" onclick="blockUser()"><i class="fa fa-user-slash"></i> BLOKIR</button>
+          <button class="ctrl-btn cb-green" onclick="unblockUser()"><i class="fa fa-user-check"></i> UNBLOKIR</button>
+        </div>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-users"></i> DAFTAR AKUN (REAL-TIME)</div>
+        <div class="tbl-wrap"><div id="userList" style="max-height:320px;overflow-y:auto;"></div></div>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-magnifying-glass"></i> CARI USER</div>
+        <div class="form-row"><input type="text" id="searchUserInput" placeholder="Username atau UID..." oninput="searchUser()"></div>
+        <div id="searchUserResult" style="max-height:250px;overflow-y:auto;font-size:.9rem;"></div>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-magnifying-glass"></i> CARI PROMPT</div>
+        <div class="form-row"><input type="text" id="searchPromptInput" placeholder="Prompt ID..." oninput="searchPrompt()"></div>
+        <div id="searchPromptResult" style="max-height:250px;overflow-y:auto;font-size:.9rem;"></div>
+      </div>
+
+      <div class="ctrl-card">
+        <div class="ctrl-card-title"><i class="fa fa-bell"></i> KIRIM NOTIFIKASI</div>
+        <div class="form-row"><input type="text" id="notifUserId" placeholder="UID User (kosongkan untuk semua)"></div>
+        <div class="form-row"><input type="text" id="notifTitle" placeholder="Judul Notifikasi"></div>
+        <div class="form-row"><textarea class="wide" id="notifMsg" placeholder="Pesan Notifikasi..."></textarea></div>
+        <button class="ctrl-btn cb-gold" onclick="sendNotifToUsers()"><i class="fa fa-bell"></i> KIRIM NOTIF</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TRX PAGE -->
+  <div class="admin-page" id="apage-trx">
+    <div class="admin-header">
+      <i class="fa fa-receipt"></i> TRANSAKSI
+      <span class="trx-count-badge" id="trxPendingCount">0 pending</span>
+    </div>
+    <input type="text" class="trx-search" id="trxSearch" placeholder="Cari nama / prompt / UID..." oninput="filterTrx()">
+    <div class="trx-filter-row">
+      <button class="trx-filter-btn active" onclick="setTrxFilter('all',this)"><i class="fa fa-list"></i> Semua</button>
+      <button class="trx-filter-btn" onclick="setTrxFilter('pending',this)"><i class="fa fa-clock"></i> Pending</button>
+      <button class="trx-filter-btn" onclick="setTrxFilter('success',this)"><i class="fa fa-check-circle"></i> Sukses</button>
+      <button class="trx-filter-btn" onclick="setTrxFilter('cancelled',this)"><i class="fa fa-ban"></i> Cancelled</button>
+      <button class="trx-filter-btn" onclick="setTrxFilter('expired',this)"><i class="fa fa-hourglass-end"></i> Expired</button>
+    </div>
+    <div id="trxAdminList"></div>
+  </div>
+
+  <!-- PROFIL ADMIN -->
+  <div class="admin-page" id="apage-profil">
+    <div class="admin-header"><i class="fa fa-user-shield"></i> PROFIL ADMIN</div>
+    <div class="admin-profil">
+      <div class="admin-av"><i class="fa fa-user-secret"></i></div>
+      <div id="adminProfilInfo">
+        <div style="font-family:'Orbitron',sans-serif;font-size:.8rem;color:var(--text2);margin-bottom:12px;"><i class="fa fa-user"></i> Belum login Firebase</div>
+      </div>
+      <div class="admin-profil-menu">
+        <button class="admin-profil-btn" onclick="adminLoginGoogle()"><i class="fab fa-google" style="color:#ea4335;"></i> Login dengan Google</button>
+        <button class="admin-profil-btn" onclick="showAdminEmailLogin()"><i class="fa fa-envelope"></i> Login dengan Email</button>
+        <button class="admin-profil-btn" onclick="adminLogout()"><i class="fa fa-arrow-right-from-bracket"></i> Logout Firebase</button>
+        <button class="admin-profil-btn" style="border-color:rgba(255,23,68,.5);color:var(--red);" onclick="logoutAdmin()"><i class="fa fa-lock"></i> Keluar Admin Panel</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="admin-navbar">
+    <button class="admin-nav-btn active" id="anav-home" onclick="switchAPage('home')"><i class="fa fa-chart-line"></i>Home</button>
+    <button class="admin-nav-btn" id="anav-control" onclick="switchAPage('control')"><i class="fa fa-sliders"></i>Control</button>
+    <button class="admin-nav-btn" id="anav-trx" onclick="switchAPage('trx')"><i class="fa fa-receipt"></i>TRX</button>
+    <button class="admin-nav-btn" id="anav-profil" onclick="switchAPage('profil')"><i class="fa fa-user-shield"></i>Profil</button>
+  </nav>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="amodal" id="confirmModal">
+  <div class="amodal-box">
+    <button class="amodal-close" onclick="closeAModal('confirmModal')"><i class="fa fa-xmark"></i></button>
+    <div class="amodal-title" id="confirmTitle">Konfirmasi</div>
+    <div class="amodal-text" id="confirmText">Yakin?</div>
+    <div class="amodal-btns">
+      <button class="amb amb-r" id="confirmBtn">Ya</button>
+      <button class="amb amb-s" onclick="closeAModal('confirmModal')">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN EMAIL LOGIN MODAL -->
+<div class="amodal" id="adminLoginModal">
+  <div class="amodal-box">
+    <button class="amodal-close" onclick="closeAModal('adminLoginModal')"><i class="fa fa-xmark"></i></button>
+    <div class="amodal-title"><i class="fa fa-envelope"></i> LOGIN EMAIL</div>
+    <input type="email" class="a-form-input" id="adminEmail" placeholder="Email">
+    <input type="password" class="a-form-input" id="adminEmailPw" placeholder="Password">
+    <button class="ctrl-btn cb-red" style="width:100%;justify-content:center;margin-top:4px;" onclick="adminEmailLogin()"><i class="fa fa-arrow-right-to-bracket"></i> MASUK</button>
+  </div>
+</div>
+
+<div class="atoast" id="atoast"></div>
+
+<!-- FIREBASE MODULE -->
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import{getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,signInWithEmailAndPassword,onAuthStateChanged,signOut}from"https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import{getFirestore,collection,addDoc,getDocs,doc,updateDoc,deleteDoc,setDoc,getDoc,query,orderBy,where,onSnapshot,limit,writeBatch}from"https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const fbApp=initializeApp({apiKey:"AIzaSyD7aqphUFXdd9lNnbaj8r4wbZHfz6P5K7U",authDomain:"metagz-prompt.firebaseapp.com",projectId:"metagz-prompt",storageBucket:"metagz-prompt.firebasestorage.app",messagingSenderId:"534615708919",appId:"1:534615708919:web:a899fc6133f6e3bbf96ff2"});
+const auth=getAuth(fbApp),db=getFirestore(fbApp),gp=new GoogleAuthProvider();
+const SB="https://mswsbqmykovkplczogoh.supabase.co",SBK="sb_publishable_AEHw5q21INzEA4tUMjZGHw_3_gOtF3D";
+
+let allTrx=[],trxFilter='all';
+
+// AUTH
+onAuthStateChanged(auth,u=>{
+  const el=document.getElementById('adminProfilInfo');
+  if(u){el.innerHTML=`<div style="font-family:'Orbitron',sans-serif;font-size:.82rem;color:var(--text);margin-bottom:6px;"><i class="fa fa-user-circle" style="color:var(--red);"></i> ${u.displayName||u.email}</div><div style="font-size:.72rem;color:var(--text2);"><i class="fa fa-envelope"></i> ${u.email}</div><div style="font-size:.7rem;color:var(--green);margin-top:4px;"><i class="fa fa-circle-check"></i> Terautentikasi</div>`;}
+  else{el.innerHTML=`<div style="font-family:'Orbitron',sans-serif;font-size:.8rem;color:var(--text2);"><i class="fa fa-user"></i> Belum login Firebase</div>`;}
+});
+function isMobileUA(){return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');}
+window.adminLoginGoogle=async()=>{
+  gp.setCustomParameters({prompt:'select_account'});
+  try{
+    if(isMobileUA()){await signInWithRedirect(auth,gp);}
+    else{await signInWithPopup(auth,gp);showAToast('✅ Login berhasil!');closeAModal('adminLoginModal');}
+  }catch(e){
+    if(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'){
+      try{await signInWithRedirect(auth,gp);}catch(e2){showAToast('❌ '+e2.message);}
+    }else if(e.code==='auth/unauthorized-domain'){
+      showAToast('❌ Domain belum diizinkan di Firebase Console (Authorized domains)');
+    }else{showAToast('❌ '+e.message);}
+  }
+};
+getRedirectResult(auth).then(r=>{if(r&&r.user){showAToast('✅ Login berhasil!');closeAModal('adminLoginModal');}}).catch(e=>{if(e&&e.code&&e.code!=='auth/no-auth-event')showAToast('❌ Login gagal: '+e.message);});
+window.showAdminEmailLogin=()=>openAModal('adminLoginModal');
+window.adminEmailLogin=async()=>{const e=document.getElementById('adminEmail').value.trim(),p=document.getElementById('adminEmailPw').value;if(!e||!p){showAToast('⚠️ Isi email & password!');return;}try{await signInWithEmailAndPassword(auth,e,p);showAToast('✅ Login berhasil!');closeAModal('adminLoginModal');}catch(e){showAToast('❌ '+e.message);}};
+window.adminLogout=async()=>{await signOut(auth);showAToast('👋 Logout Firebase');};
+
+// ANALYTICS
+function initAnalytics(){
+  onSnapshot(collection(db,'analytics'),snap=>{
+    const all=snap.docs.map(d=>d.data());
+    document.getElementById('totalVisits').textContent=all.filter(x=>x.type==='visit').length.toLocaleString('id');
+    buildChart('visitChart',all,'visit');
+    buildChart('uploadChart',all,'upload');
+    const sorted=[...all].sort((a,b)=>b.ts-a.ts).slice(0,25);
+    const log=document.getElementById('activityLog');
+    const icons={visit:{icon:'fa-eye',color:'var(--blue)'},upload:{icon:'fa-upload',color:'var(--gold)'},transaction:{icon:'fa-receipt',color:'var(--orange)'}};
+    const labels={visit:'Website dikunjungi',upload:'Prompt diupload',transaction:'Transaksi baru masuk'};
+    log.innerHTML=sorted.map(x=>{
+      const t=new Date(x.ts).toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'});
+      const ic=icons[x.type]||{icon:'fa-circle',color:'var(--red)'};
+      return `<div class="log-item"><i class="fa ${ic.icon} log-icon" style="color:${ic.color};"></i><span>${labels[x.type]||x.type}</span><span class="log-time">${t}</span></div>`;
+    }).join('')||'<div style="text-align:center;padding:20px;color:var(--text2);font-size:.8rem;">Tidak ada aktivitas</div>';
+  });
+  onSnapshot(collection(db,'users'),snap=>{document.getElementById('totalUsers').textContent=snap.size.toLocaleString('id');renderUserList(snap.docs.map(d=>({id:d.id,...d.data()})));});
+  onSnapshot(collection(db,'prompts'),snap=>{document.getElementById('totalPrompts').textContent=snap.size.toLocaleString('id');renderPromptTable(snap.docs.map(d=>({id:d.id,...d.data()})));});
+  // TRX realtime
+  onSnapshot(query(collection(db,'transactions'),orderBy('createdAt','desc')),snap=>{
+    allTrx=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const pending=allTrx.filter(t=>t.status==='pending').length;
+    document.getElementById('totalTrx').textContent=allTrx.length.toLocaleString('id');
+    document.getElementById('trxPendingCount').textContent=`${pending} pending`;
+    // auto expire
+    const now=Date.now();
+    allTrx.forEach(async t=>{if(t.status==='pending'&&t.expiredAt&&now>t.expiredAt){try{await updateDoc(doc(db,'transactions',t.id),{status:'expired'});}catch{}}});
+    renderTrxAdmin();
+  });
+}
+
+function buildChart(elId,all,type){
+  const el=document.getElementById(elId);if(!el)return;
+  const days=[];
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const key=d.toISOString().slice(0,10);days.push({key,count:all.filter(x=>x.type===type&&new Date(x.ts).toISOString().slice(0,10)===key).length,label:d.toLocaleDateString('id-ID',{weekday:'short'})});}
+  const max=Math.max(...days.map(x=>x.count),1);
+  el.innerHTML=days.map(x=>`<div class="bar" style="height:${Math.max((x.count/max)*90,4)}%;"><div class="bar-lbl">${x.label}</div></div>`).join('');
+}
+
+function renderUserList(users){
+  const ul=document.getElementById('userList');
+  ul.innerHTML=users.map(u=>{
+    const blocked=u.blocked?'<span style="color:var(--red);font-size:.65rem;margin-left:4px;"><i class="fa fa-ban"></i></span>':'';
+    return `<div class="user-item">
+      <div class="user-avatar"><i class="fa fa-user"></i></div>
+      <div class="user-info">
+        <div class="user-name-txt">${u.name||'—'}${blocked}</div>
+        <div class="user-meta"><i class="fa fa-id-badge"></i> ${u.mgzId||'—'} &nbsp;|&nbsp; <i class="fa fa-coins" style="color:var(--gold);"></i> ${u.tokens??2} &nbsp;|&nbsp; ${u.email||'—'}</div>
+      </div>
+      <div class="user-actions">
+        <button class="tbl-action" style="background:rgba(255,23,68,.15);color:var(--red);" onclick="doBlock('${u.id}',true)" title="Blokir"><i class="fa fa-user-slash"></i></button>
+        <button class="tbl-action" style="background:rgba(0,230,118,.1);color:var(--green);" onclick="doBlock('${u.id}',false)" title="Unblokir"><i class="fa fa-user-check"></i></button>
+      </div>
+    </div>`;
+  }).join('')||'<div style="text-align:center;padding:20px;color:var(--text2);font-size:.8rem;">Tidak ada akun</div>';
+}
+
+function renderPromptTable(prompts){
+  const tb=document.getElementById('promptTableBody');
+  tb.innerHTML=prompts.map(p=>{
+    const badge=p.type==='premium'?`<span style="color:var(--gold);font-size:.7rem;"><i class="fa fa-crown"></i></span>`:`<span style="color:var(--red);font-size:.7rem;"><i class="fa fa-bolt"></i></span>`;
+    return `<tr><td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);">${p.title||'—'}</td><td>${badge}</td><td style="font-size:.72rem;">${p.author||'—'}</td><td><i class="fa fa-heart" style="color:var(--red);"></i>${p.likes||0}</td><td><button class="tbl-action" style="background:rgba(255,23,68,.15);color:var(--red);" onclick="askDelPromptDirect('${p.id}','${(p.title||'').replace(/'/g,'')}')" title="Hapus"><i class="fa fa-trash"></i></button></td></tr>`;
+  }).join('')||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text2);">Tidak ada prompt</td></tr>';
+}
+
+// TRX ADMIN RENDER
+window.trxFilter='all';
+window.filterTrx=()=>renderTrxAdmin();
+window.setTrxFilter=(f,btn)=>{trxFilter=f;document.querySelectorAll('.trx-filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderTrxAdmin();};
+
+function renderTrxAdmin(){
+  const search=(document.getElementById('trxSearch')?.value||'').toLowerCase();
+  let list=allTrx;
+  if(trxFilter!=='all')list=list.filter(t=>t.status===trxFilter);
+  if(search)list=list.filter(t=>(t.userName||'').toLowerCase().includes(search)||(t.promptTitle||'').toLowerCase().includes(search)||(t.uid||'').toLowerCase().includes(search)||(t.mgzId||'').toLowerCase().includes(search));
+  const el=document.getElementById('trxAdminList');if(!el)return;
+  if(!list.length){el.innerHTML=`<div class="trx-empty"><i class="fa fa-receipt"></i><p>Tidak ada transaksi</p></div>`;return;}
+  el.innerHTML=list.map(t=>{
+    const stMap={pending:'st-pending',success:'st-success',cancelled:'st-cancelled',expired:'st-expired'};
+    const stLabel={pending:'⏳ PENDING',success:'✅ SUKSES',cancelled:'❌ CANCELLED',expired:'⌛ EXPIRED'};
+    const sc=stMap[t.status]||'st-pending';const sl=stLabel[t.status]||t.status.toUpperCase();
+    const time=new Date(t.createdAt).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const expTime=t.expiredAt?new Date(t.expiredAt).toLocaleString('id-ID',{hour:'2-digit',minute:'2-digit'}):'—';
+    const proofHtml=t.proofUrl?`<div><img src="${t.proofUrl}" class="proof-thumb" onclick="window.open('${t.proofUrl}','_blank')" title="Klik untuk perbesar"></div>`:'<div style="font-size:.75rem;color:var(--text2);"><i class="fa fa-image"></i> Belum ada bukti</div>';
+    // Seller payment info (only shown in admin panel)
+    const payInfo=`<div class="pay-info-box">
+      <div class="pi-title"><i class="fa fa-wallet"></i> INFO PEMBAYARAN SELLER</div>
+      <div class="pi-row"><i class="fa fa-credit-card" style="color:var(--gold);"></i> Metode: <strong>${t.sellerPayMethod||'—'}</strong></div>
+      ${t.sellerPayNumber?`<div class="pi-row"><i class="fa fa-mobile-screen" style="color:var(--gold);"></i> Nomor: <strong>${t.sellerPayNumber}</strong></div>`:''}
+      ${t.sellerQrUrl?`<img src="${t.sellerQrUrl}" class="pay-qr-img" onclick="window.open('${t.sellerQrUrl}','_blank')" title="QRIS Seller">`:''}
+    </div>`;
+    const actions=t.status==='pending'?`
+      <button class="ctrl-btn cb-green" onclick="approveTrx('${t.id}','${t.uid}','${t.promptId}')"><i class="fa fa-unlock"></i> SETUJUI & BERI AKSES</button>
+      <button class="ctrl-btn cb-red" onclick="rejectTrx('${t.id}')"><i class="fa fa-ban"></i> TOLAK</button>`:'';
+    return `<div class="trx-admin-card">
+      <div class="trx-admin-header">
+        <div class="trx-admin-title"><i class="fa fa-crown" style="color:var(--gold);"></i> ${t.promptTitle||'Prompt Premium'}</div>
+        <span class="trx-status-badge ${sc}">${sl}</span>
+      </div>
+      <div class="trx-row"><i class="fa fa-user" style="color:var(--blue);"></i> User: <strong>${t.userName||'—'}</strong> (${t.mgzId||t.uid?.slice(0,8)||'—'})</div>
+      <div class="trx-row"><i class="fa fa-money-bill-wave" style="color:var(--gold);"></i> Harga: <strong>Rp ${(t.price||0).toLocaleString('id')}</strong></div>
+      <div class="trx-row"><i class="fa fa-id-card" style="color:var(--text2);"></i> Prompt ID: <span style="font-size:.7rem;">${t.promptId||'—'}</span></div>
+      <div class="trx-row"><i class="fa fa-calendar" style="color:var(--text2);"></i> Waktu: ${time}</div>
+      <div class="trx-row"><i class="fa fa-hourglass-end" style="color:var(--orange);"></i> Expired pukul: ${expTime}</div>
+      ${payInfo}
+      <div style="margin:6px 0;font-size:.78rem;color:var(--text2);"><i class="fa fa-receipt"></i> Bukti Transfer:</div>
+      ${proofHtml}
+      ${actions?`<div class="trx-admin-actions">${actions}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// APPROVE TRX
+window.approveTrx=async(trxId,uid,promptId)=>{
+  openConfirm('Setujui Transaksi?',`Beri akses prompt kepada user dan ubah status menjadi SUKSES?`,async()=>{
+    try{
+      await updateDoc(doc(db,'transactions',trxId),{status:'success',approvedAt:Date.now()});
+      await setDoc(doc(db,'premiumAccess',`${uid}_${promptId}`),{uid,promptId,granted:true,grantedAt:Date.now()});
+      showAToast('✅ Transaksi disetujui & akses diberikan!');
+    }catch(e){showAToast('❌ '+e.message);}
+  },'cb-green');
+};
+
+window.rejectTrx=async(trxId)=>{
+  openConfirm('Tolak Transaksi?','Transaksi akan dibatalkan dan status berubah menjadi CANCELLED.',async()=>{
+    try{await updateDoc(doc(db,'transactions',trxId),{status:'cancelled',rejectedAt:Date.now()});showAToast('❌ Transaksi ditolak');}
+    catch(e){showAToast('❌ '+e.message);}
+  },'cb-red');
+};
+
+// BANNER
+window.sendBanner=async()=>{const text=document.getElementById('bannerText').value.trim();if(!text){showAToast('⚠️ Teks banner kosong!');return;}try{const snaps=await getDocs(query(collection(db,'banners'),where('active','==',true)));for(const d of snaps.docs)await updateDoc(doc(db,'banners',d.id),{active:false});await addDoc(collection(db,'banners'),{text,imgUrl:document.getElementById('bannerImg').value.trim(),active:true,createdAt:Date.now()});showAToast('📢 Banner dikirim!');document.getElementById('bannerText').value='';document.getElementById('bannerImg').value='';}catch(e){showAToast('❌ '+e.message);}};
+window.deleteBanner=async()=>{try{const s=await getDocs(query(collection(db,'banners'),where('active','==',true)));for(const d of s.docs)await updateDoc(doc(db,'banners',d.id),{active:false});showAToast('🗑️ Banner dihapus!');}catch(e){showAToast('❌ '+e.message);}};
+
+// BACKGROUND
+// UPLOAD FILE MEDIA (video/audio/gambar) LANGSUNG KE SUPABASE STORAGE, LALU ISI KE FIELD URL
+window.uploadMediaFile=async(inputEl,targetFieldId)=>{
+  const file=inputEl.files[0];if(!file)return;
+  const status=document.getElementById('mediaUploadStatus');
+  status.textContent='⏳ Mengupload '+file.name+'...';
+  try{
+    const fn=`${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`;
+    const rs=await fetch(`${SB}/storage/v1/object/media/${fn}`,{method:'POST',headers:{'Authorization':`Bearer ${SBK}`,'Content-Type':file.type},body:file});
+    if(rs.ok){
+      const url=`${SB}/storage/v1/object/public/media/${fn}`;
+      document.getElementById(targetFieldId).value=url;
+      status.textContent='✅ Upload sukses, klik SIMPAN PENGATURAN untuk menerapkan.';
+      showAToast('✅ File terupload!');
+    }else{
+      status.textContent='❌ Upload gagal (pastikan bucket "media" ada & bersifat public di Supabase Storage)';
+      showAToast('❌ Upload gagal');
+    }
+  }catch(e){status.textContent='❌ '+e.message;showAToast('❌ '+e.message);}
+};
+
+window.saveBg=async()=>{
+  const data={};
+  const v=document.getElementById('bgVideoUrl').value.trim();if(v)data.videoUrl=v;
+  const a=document.getElementById('bgAudioUrl').value.trim();if(a)data.audioUrl=a;
+  const l=document.getElementById('bgLandingImg').value.trim();if(l)data.landingImg=l;
+  if(!Object.keys(data).length){showAToast('⚠️ Isi minimal satu field!');return;}
+  try{await setDoc(doc(db,'settings','background'),data,{merge:true});showAToast('✅ Pengaturan disimpan!');}catch(e){showAToast('❌ '+e.message);}
+};
+
+// VIP
+window.setVIP=async()=>{const id=document.getElementById('vipPromptId').value.trim();const days=parseInt(document.getElementById('vipDays').value)||1;if(!id){showAToast('⚠️ Masukkan Prompt ID!');return;}if(days>500){showAToast('⚠️ Maks 500 hari!');return;}try{await updateDoc(doc(db,'prompts',id),{vip:Date.now()+days*86400000,vipDays:days});showAToast(`⭐ VIP aktif ${days} hari!`);}catch(e){showAToast('❌ '+e.message);}};
+window.removeVIP=async()=>{const id=document.getElementById('vipPromptId').value.trim();if(!id){showAToast('⚠️ Masukkan Prompt ID!');return;}try{await updateDoc(doc(db,'prompts',id),{vip:0});showAToast('⭐ VIP dihapus!');}catch(e){showAToast('❌ '+e.message);}};
+
+// LABEL
+window.setLabel=async()=>{const id=document.getElementById('labelPromptId').value.trim();const lbl=document.getElementById('labelType').value;if(!id||!lbl){showAToast('⚠️ Isi Prompt ID & label!');return;}try{await updateDoc(doc(db,'prompts',id),{label:lbl});showAToast('🏷️ Label ditambahkan!');}catch(e){showAToast('❌ '+e.message);}};
+window.removeLabel=async()=>{const id=document.getElementById('labelPromptId').value.trim();if(!id){showAToast('⚠️ Masukkan Prompt ID!');return;}try{await updateDoc(doc(db,'prompts',id),{label:''});showAToast('🏷️ Label dihapus!');}catch(e){showAToast('❌ '+e.message);}};
+
+// TEMPLATE
+window.setTemplate=async()=>{const id=document.getElementById('tplPromptId').value.trim();if(!id){showAToast('⚠️ Masukkan Prompt ID!');return;}const data={};const v=document.getElementById('tplVideoUrl').value.trim();if(v)data.videoBg=v;const p=document.getElementById('tplPhotoUrl').value.trim();if(p)data.photoBg=p;try{await updateDoc(doc(db,'prompts',id),data);showAToast('🎨 Template diterapkan!');}catch(e){showAToast('❌ '+e.message);}};
+window.removeTemplate=async()=>{const id=document.getElementById('tplPromptId').value.trim();if(!id){showAToast('⚠️ Masukkan Prompt ID!');return;}try{await updateDoc(doc(db,'prompts',id),{videoBg:'',photoBg:''});showAToast('🔄 Template direset!');}catch(e){showAToast('❌ '+e.message);}};
+
+// TOKEN
+window.addToken=async()=>{
+  const input=document.getElementById('tokenUserId').value.trim();const amount=parseInt(document.getElementById('tokenAmount').value)||0;
+  if(!input||!amount){showAToast('⚠️ Isi UID & jumlah token!');return;}
+  try{
+    let uid=input;
+    if(input.startsWith('MGZ-')){const s=await getDocs(query(collection(db,'users'),where('mgzId','==',input)));if(s.empty){showAToast('❌ User tidak ditemukan!');return;}uid=s.docs[0].id;}
+    const ref=doc(db,'users',uid);const s=await getDoc(ref);if(!s.exists()){showAToast('❌ User tidak ditemukan!');return;}
+    await updateDoc(ref,{tokens:(s.data().tokens??2)+amount});showAToast(`✅ +${amount} token ditambahkan!`);
+  }catch(e){showAToast('❌ '+e.message);}
+};
+
+// ACCESS
+window.grantAccess=async()=>{const uid=document.getElementById('accUid').value.trim();const pid=document.getElementById('accPromptId').value.trim();if(!uid||!pid){showAToast('⚠️ Isi UID & Prompt ID!');return;}try{await setDoc(doc(db,'premiumAccess',`${uid}_${pid}`),{uid,promptId:pid,granted:true,grantedAt:Date.now()});showAToast('🔓 Akses diberikan!');}catch(e){showAToast('❌ '+e.message);}};
+window.revokeAccess=async()=>{const uid=document.getElementById('accUid').value.trim();const pid=document.getElementById('accPromptId').value.trim();if(!uid||!pid){showAToast('⚠️ Isi UID & Prompt ID!');return;}try{await updateDoc(doc(db,'premiumAccess',`${uid}_${pid}`),{granted:false});showAToast('🔒 Akses dicabut!');}catch(e){showAToast('❌ '+e.message);}};
+
+// BLOCK
+async function doBlock(uid,block){try{await updateDoc(doc(db,'users',uid),{blocked:block});showAToast(block?'⛔ Akun diblokir!':'✅ Akun di-unblokir!');}catch(e){showAToast('❌ '+e.message);}}
+window.doBlock=doBlock;
+window.blockUser=()=>{const uid=document.getElementById('blockUid').value.trim();if(!uid){showAToast('⚠️ Isi UID!');return;}doBlock(uid,true);};
+window.unblockUser=()=>{const uid=document.getElementById('blockUid').value.trim();if(!uid){showAToast('⚠️ Isi UID!');return;}doBlock(uid,false);};
+
+// DELETE PROMPT
+window.askDelPrompt=()=>{const id=document.getElementById('delPromptId').value.trim();if(!id){showAToast('⚠️ Isi Prompt ID!');return;}askDelPromptDirect(id,'ini');};
+window.askDelPromptDirect=(id,title)=>{
+  openConfirm('Hapus Prompt?',`Hapus prompt "${title}"? Tidak bisa dibatalkan.`,async()=>{
+    try{await deleteDoc(doc(db,'prompts',id));showAToast('🗑️ Prompt dihapus!');document.getElementById('delPromptId').value='';}
+    catch(e){showAToast('❌ '+e.message);}
+  },'cb-red');
+};
+
+// CONFIRM MODAL
+function openConfirm(title,text,onConfirm,btnClass='cb-red'){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmText').textContent=text;
+  const btn=document.getElementById('confirmBtn');
+  btn.className=`amb ${btnClass}`;
+  btn.onclick=async()=>{await onConfirm();closeAModal('confirmModal');};
+  openAModal('confirmModal');
+}
+
+window.openAModal=id=>document.getElementById(id).classList.add('open');
+window.closeAModal=id=>document.getElementById(id).classList.remove('open');
+function showAToast(msg){const t=document.getElementById('atoast');t.innerHTML=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2700);}
+window.showAToast=showAToast;
+
+// Expose Firestore refs/fungsi ke script non-module di bawah (fix "getDoc/getDocs is not defined")
+window.db=db;
+window.getDoc=getDoc;
+window.getDocs=getDocs;
+window.doc=doc;
+window.collection=collection;
+window.setDoc=setDoc;
+window.updateDoc=updateDoc;
+window.deleteDoc=deleteDoc;
+window.addDoc=addDoc;
+window.query=query;
+window.orderBy=orderBy;
+window.where=where;
+window.onSnapshot=onSnapshot;
+window.limit=limit;
+window.writeBatch=writeBatch;
+
+initAnalytics();
+</script>
+
+<!-- VANILLA JS -->
+<script>
+// ADMIN LOGIN - Simple Password
+const ADMIN_PASSWORD = 'AGZZ2026'; // Ubah password di sini
+
+function doAdminLogin(){
+  const pw = document.getElementById('adminPw').value;
+  const err = document.getElementById('loginErr');
+  
+  if(pw === ADMIN_PASSWORD){
+    document.getElementById('adminLanding').style.display = 'none';
+    document.getElementById('adminApp').style.display = 'block';
+    document.getElementById('adminPw').value = '';
+    showAToast('✅ Login berhasil!');
+  } else {
+    err.style.display = 'block';
+    err.style.animation = 'none';
+    err.textContent = '❌ Password salah! Akses ditolak.';
+    requestAnimationFrame(() => {
+      err.style.animation = 'shake .3s ease';
+    });
+    setTimeout(() => err.style.display = 'none', 3000);
+  }
+}
+
+function logoutAdmin(){
+  document.getElementById('adminApp').style.display = 'none';
+  document.getElementById('adminLanding').style.display = 'flex';
+  document.getElementById('adminPw').value = '';
+  showAToast('👋 Logout berhasil');
+}
+
+function togglePw(){
+  const inp = document.getElementById('adminPw');
+  const ico = document.getElementById('eyeIcon');
+  if(inp.type === 'password'){
+    inp.type = 'text';
+    ico.className = 'fa fa-eye-slash';
+  } else {
+    inp.type = 'password';
+    ico.className = 'fa fa-eye';
+  }
+}
+
+function switchAPage(page){
+  document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('apage-' + page).classList.add('active');
+  document.getElementById('anav-' + page).classList.add('active');
+  if(page==='control')loadBgSettings();
+}
+async function loadBgSettings(){
+  try{
+    const s=await getDoc(doc(db,'settings','background'));
+    if(s.exists()){
+      const d=s.data();
+      if(d.videoUrl)document.getElementById('bgVideoUrl').value=d.videoUrl;
+      if(d.audioUrl)document.getElementById('bgAudioUrl').value=d.audioUrl;
+      if(d.landingImg)document.getElementById('bgLandingImg').value=d.landingImg;
+    }
+  }catch(e){console.log('loadBgSettings err',e);}
+}
+
+window.switchAPage = switchAPage;
+window.logoutAdmin = logoutAdmin;
+window.doAdminLogin = doAdminLogin;
+window.togglePw = togglePw;
+
+// ===== NEW ADMIN FEATURES =====
+
+// SEARCH USER
+window.searchUser=async()=>{
+  const q=document.getElementById('searchUserInput').value.trim().toLowerCase();
+  const res=document.getElementById('searchUserResult');
+  if(!q){res.innerHTML='';return;}
+  res.innerHTML='<div style="text-align:center;color:var(--text2);">Mencari...</div>';
+  try{
+    const snap=await getDocs(collection(db,'users'));
+    const users=snap.docs.filter(d=>{const u=d.data();return(u.username?.toLowerCase().includes(q)||d.id.toLowerCase().includes(q));}).map(d=>({id:d.id,...d.data()}));
+    res.innerHTML=users.length?users.map(u=>`<div style="padding:10px;border-bottom:1px solid rgba(255,23,68,0.2);"><strong style="color:var(--red);">${u.username||'Anon'}</strong><br><span style="font-size:.8rem;color:var(--text2);">UID: ${u.id}</span><br><span style="font-size:.8rem;">Email: ${u.email||'-'}</span></div>`).join(''):'<div style="padding:10px;text-align:center;color:var(--text2);">User tidak ditemukan</div>';
+  }catch(e){res.innerHTML=`<div style="color:var(--red);">Error: ${e.message}</div>`;}
+};
+
+// SEARCH PROMPT
+window.searchPrompt=async()=>{
+  const q=document.getElementById('searchPromptInput').value.trim();
+  const res=document.getElementById('searchPromptResult');
+  if(!q){res.innerHTML='';return;}
+  res.innerHTML='<div style="text-align:center;color:var(--text2);">Mencari...</div>';
+  try{
+    const snap=await getDoc(doc(db,'prompts',q));
+    if(snap.exists()){
+      const p=snap.data();
+      res.innerHTML=`<div style="padding:12px;background:rgba(255,23,68,0.1);border-radius:8px;"><strong style="color:var(--gold);">${p.title||'Prompt'}</strong><br><span style="font-size:.8rem;color:var(--text2);">Author: ${p.author||'Anonim'}</span><br><span style="font-size:.8rem;color:var(--red);">Type: ${p.type||'free'}</span><br><span style="font-size:.8rem;">Kategori: ${p.category||'-'}</span></div>`;
+    }else{
+      res.innerHTML='<div style="padding:10px;text-align:center;color:var(--text2);">Prompt tidak ditemukan</div>';
+    }
+  }catch(e){res.innerHTML=`<div style="color:var(--red);">Error: ${e.message}</div>`;}
+};
+
+// SEND NOTIFICATION
+window.sendNotifToUsers=async()=>{
+  const uid=document.getElementById('notifUserId').value.trim();
+  const title=document.getElementById('notifTitle').value.trim();
+  const msg=document.getElementById('notifMsg').value.trim();
+  if(!title||!msg){showAToast('⚠️ Judul & pesan wajib!');return;}
+  
+  try{
+    const notifData={title,message:msg,timestamp:Date.now(),read:false};
+    if(uid){
+      // Kirim ke user spesifik
+      await setDoc(doc(db,'users',uid,'notifications',Date.now().toString()),notifData);
+      showAToast('✅ Notifikasi dikirim ke user!');
+    }else{
+      // Kirim ke semua users
+      const snap=await getDocs(collection(db,'users'));
+      const batch=writeBatch(db);
+      snap.docs.forEach(d=>{
+        batch.set(doc(db,'users',d.id,'notifications',Date.now().toString()),notifData);
+      });
+      await batch.commit();
+      showAToast(`✅ Notifikasi dikirim ke ${snap.size} user!`);
+    }
+    document.getElementById('notifUserId').value='';
+    document.getElementById('notifTitle').value='';
+    document.getElementById('notifMsg').value='';
+  }catch(e){showAToast('❌ '+e.message);}
+};
+
+</script>
+</body>
+</html>
